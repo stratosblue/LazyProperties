@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "LazyProperties.Generator.Test": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../sample/LazyPropertiesSample/LazyPropertiesSample.csproj"
+    }
+  }
+}

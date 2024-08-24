@@ -1,0 +1,11 @@
+﻿<Project>
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <LangVersion>preview</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <IsPackable>true</IsPackable>
+
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+
+    <Description>Template property code generator based on `partial` property syntax. 基于 `partial` 属性语法的属性模板化代码生成器。</Description>
+
+    <Authors>stratos</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/stratosblue/LazyProperties</PackageProjectUrl>
+
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+
+    <PackageTags>property properties partial-property template-code di service services service-privider</PackageTags>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LazyProperties.Generator\LazyProperties.Generator.csproj" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <Target Name="_IncludeSourceGenerator" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="..\LazyProperties.Generator\bin\$(Configuration)\**\*.dll" Pack="True" PackagePath="analyzers\dotnet\cs" />
+    </ItemGroup>
+  </Target>
+</Project>
