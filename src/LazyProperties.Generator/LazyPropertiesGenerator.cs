@@ -16,29 +16,23 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
         var compilationPropertiesProvider = context.AnalyzerConfigOptionsProvider.Select((configOptions, token) =>
         {
-            configOptions.GlobalOptions.TryGetValue("build_property.LazyPropertyGlobalTemplate", out var lazyPropertyGlobalTemplateValue);
+            configOptions.GlobalOptions.TryGetValue("build_property.LazyPropertyGlobalGetterTemplate", out var lazyPropertyGlobalGetterTemplateValue);
+            configOptions.GlobalOptions.TryGetValue("build_property.LazyPropertyGlobalSetterTemplate", out var lazyPropertyGlobalSetterTemplateValue);
 
             return new CompilationProperties()
             {
-                GlobalTemplate = lazyPropertyGlobalTemplateValue
+                GlobalGetterTemplate = lazyPropertyGlobalGetterTemplateValue,
+                GlobalSetterTemplate = lazyPropertyGlobalSetterTemplateValue
             };
         });
 
         context.RegisterImplementationSourceOutput(declarationsProvider.Combine(compilationPropertiesProvider), (context, input) =>
         {
             var (descriptor, compilationProperties) = input;
-            var (classDeclarationSyntax, lazyPropertyDeclarations, classTemplate) = descriptor;
+            var (classDeclarationSyntax, lazyPropertyDeclarations, classGetterTemplate, classSetterTemplate) = descriptor;
 
-            var template = compilationProperties.GlobalTemplate;
-
-            if (!string.IsNullOrWhiteSpace(classTemplate))
-            {
-                template = classTemplate;
-            }
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                template = LazyPropertiesConstants.DefaultLazyPropertyTemplate;
-            }
+            var getterTemplate = GetAccessorTemplate(LazyPropertiesConstants.DefaultLazyPropertyGetterTemplate, compilationProperties.GlobalGetterTemplate, classGetterTemplate);
+            var setterTemplate = GetAccessorTemplate(LazyPropertiesConstants.DefaultLazyPropertySetterTemplate, compilationProperties.GlobalSetterTemplate, classSetterTemplate);
 
             var @namespace = "";
             IEnumerable<UsingDirectiveSyntax> usings = [];
@@ -59,11 +53,10 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
             var className = classDeclarationSyntax.Identifier.ValueText;
 
-            var generateField = template.Contains("$FieldName$");
+            var generateField = getterTemplate.Contains("$FieldName$") || setterTemplate.Contains("$FieldName$");
 
-            template = template.Replace("$Type$", "{0}")
-                               .Replace("$PropertyName$", "{1}")
-                               .Replace("$FieldName$", "{2}");
+            getterTemplate = MakeTemplateFormatable(getterTemplate);
+            setterTemplate = MakeTemplateFormatable(setterTemplate);
 
             var builder = new StringBuilder();
 
@@ -110,7 +103,7 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
                 {
                     builder.AppendLine($"""
                                                [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-                                               get => {string.Format(template, propertyType, propertyName, fieldName)};
+                                               get => {string.Format(getterTemplate, propertyType, propertyName, fieldName)};
                                        """);
                 }
 
@@ -118,7 +111,7 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
                 {
                     builder.AppendLine($"""
                                                [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-                                               set => {fieldName} = value;
+                                               set => {string.Format(setterTemplate, propertyType, propertyName, fieldName)};
                                        """);
                 }
 
@@ -132,15 +125,31 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
         context.RegisterPostInitializationOutput(context =>
         {
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("LazyProperties.Generator.LazyPropertiesAttributes.cs");
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("LazyProperties.LazyPropertiesAttributes.cs");
             using var reader = new StreamReader(stream);
-            context.AddSource("LazyProperties.Generator.LazyPropertiesAttributes.cs", reader.ReadToEnd());
+            context.AddSource("LazyProperties.LazyPropertiesAttributes.cs", reader.ReadToEnd());
         });
     }
 
     #endregion Public 方法
 
     #region Private 方法
+
+    private static string GetAccessorTemplate(string defaultValue, params string?[] templates)
+    {
+        var template = defaultValue;
+
+        foreach (var item in templates)
+        {
+            if (!string.IsNullOrWhiteSpace(item))
+            {
+                template = item;
+                break;
+            }
+        }
+
+        return template!;
+    }
 
     private static IEnumerable<PropertyDeclarationSyntax> GetLazyPropertyDeclarationSyntaxes(ClassDeclarationSyntax classDeclarationSyntax)
     {
@@ -154,6 +163,14 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
         }
 
         return lazyPropertyDeclarationSelector;
+    }
+
+    private static string MakeTemplateFormatable(string template)
+    {
+        template = template.Replace("$Type$", "{0}")
+                           .Replace("$PropertyName$", "{1}")
+                           .Replace("$FieldName$", "{2}");
+        return template;
     }
 
     private bool FilterSyntaxNode(SyntaxNode node, CancellationToken token)
@@ -175,9 +192,10 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
         var templateAttribute = classDeclarationSyntax.AttributeLists.SelectMany(m => m.Attributes).FirstOrDefault(m => (m.Name as IdentifierNameSyntax)?.Identifier.Text == "LazyPropertyTemplate");
 
-        var template = (templateAttribute?.ArgumentList?.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText;
+        var getterTemplate = (templateAttribute?.ArgumentList?.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText;
+        var setterTemplate = (templateAttribute?.ArgumentList?.Arguments[1].Expression as LiteralExpressionSyntax)?.Token.ValueText;
 
-        return new(classDeclarationSyntax, lazyPropertyDeclarations, template);
+        return new(classDeclarationSyntax, lazyPropertyDeclarations, getterTemplate, setterTemplate);
     }
 
     #endregion Private 方法

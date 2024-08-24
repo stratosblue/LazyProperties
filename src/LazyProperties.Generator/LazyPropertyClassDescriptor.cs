@@ -1,5 +1,8 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace LazyProperties.Generator;
+namespace LazyProperties;
 
-internal record struct LazyPropertyClassDescriptor(ClassDeclarationSyntax ClassDeclarationSyntax, List<PropertyDeclarationSyntax> PropertyDeclarationSyntaxes, string? ClassTemplate);
+internal record struct LazyPropertyClassDescriptor(ClassDeclarationSyntax ClassDeclarationSyntax,
+                                                   List<PropertyDeclarationSyntax> PropertyDeclarationSyntaxes,
+                                                   string? GetterTemplate,
+                                                   string? SetterTemplate);

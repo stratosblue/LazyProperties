@@ -60,7 +60,7 @@ public class GeneralTest
                 Sources = { code },
                 GeneratedSources =
                 {
-                    (typeof(LazyPropertiesGenerator), "LazyProperties.Generator.LazyPropertiesAttributes.cs", SourceText.From(GetPredefineLazyPropertiesAttributesCode(), Encoding.UTF8)),
+                    (typeof(LazyPropertiesGenerator), "LazyProperties.LazyPropertiesAttributes.cs", SourceText.From(GetPredefineLazyPropertiesAttributesCode(), Encoding.UTF8)),
                     (typeof(LazyPropertiesGenerator), "LazyProperties.SampleService.g.cs", SourceText.From(generatedCode, Encoding.UTF8)),
                 },
             },
@@ -77,7 +77,7 @@ public class GeneralTest
 
     private string GetPredefineLazyPropertiesAttributesCode()
     {
-        using var stream = typeof(LazyPropertiesGenerator).Assembly.GetManifestResourceStream("LazyProperties.Generator.LazyPropertiesAttributes.cs");
+        using var stream = typeof(LazyPropertiesGenerator).Assembly.GetManifestResourceStream("LazyProperties.LazyPropertiesAttributes.cs");
         using var reader = new StreamReader(stream!);
         return reader.ReadToEnd();
     }

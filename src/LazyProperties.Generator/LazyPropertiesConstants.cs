@@ -9,7 +9,14 @@ public static class LazyPropertiesConstants
     /// <br/>
     /// $Type$ 、$PropertyName$ 、$FieldName$
     /// </summary>
-    public const string DefaultLazyPropertyTemplate = "$FieldName$ ??= GetInstance<$Type$>()";
+    public const string DefaultLazyPropertyGetterTemplate = "$FieldName$ ??= GetInstance<$Type$>()";
+
+    /// <summary>
+    /// $FieldName$ = value
+    /// <br/>
+    /// $Type$ 、$PropertyName$ 、$FieldName$
+    /// </summary>
+    public const string DefaultLazyPropertySetterTemplate = "$FieldName$ = value";
 
     #endregion Public 字段
 }

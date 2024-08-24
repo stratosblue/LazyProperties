@@ -41,8 +41,11 @@ partial class SampleClass
 - 需要 `C#13` (partial 属性) 及以上
 - 类型必须标记为 `partial`
 - 需要自动生成的属性必须标记为 `partial`
-- 可使用 `LazyPropertyTemplateAttribute` 为类型标记生成时获取对象实例所使用的模板，默认获取模板为 `$FieldName$ ??= GetInstance<$Type$>()`
-  - 模板支持以下变量
+- 可使用 `LazyPropertyTemplateAttribute` 为类型声明 `get`、`set` 访问器的模板代码
+  - 默认模板:
+    - `get`: `$FieldName$ ??= GetInstance<$Type$>()`
+    - `set`: `$FieldName$ = value`
+  - 模板支持以下变量:
     - `$Type$`: 类型名称
     - `$PropertyName$`: 属性名称
     - `$FieldName$`: 生成的字段名称 (仅当模板包含此变量时才会生成字段)
@@ -61,13 +64,14 @@ partial class SampleService
 
 ### 设置全局模板
 
-针对单个类型设置 `LazyPropertyTemplateAttribute` 在一些时候过于麻烦，可以使用 `LazyPropertyGlobalTemplate` 进行针对项目的全局设置，示例：
+针对单个类型设置 `LazyPropertyTemplateAttribute` 在一些时候过于麻烦，可以使用 `LazyPropertyGlobalGetterTemplate` 和 `LazyPropertyGlobalSetterTemplate` 进行针对项目的全局设置，示例：
 
 ```C#
 <PropertyGroup>
-  <LazyPropertyGlobalTemplate>$FieldName$ ??= default</LazyPropertyGlobalTemplate>
+  <LazyPropertyGlobalGetterTemplate>$FieldName$ ??= default</LazyPropertyGlobalGetterTemplate>
+  <LazyPropertyGlobalGetterTemplate>$FieldName$ = value ?? throw new InvalidOperationException()</LazyPropertyGlobalGetterTemplate>
 </PropertyGroup>
 ```
 
-- `LazyPropertyTemplateAttribute` 的优先级高于 `LazyPropertyGlobalTemplate`
+- `LazyPropertyTemplateAttribute` 的优先级高于 `LazyPropertyGlobalGetterTemplate` 和 `LazyPropertyGlobalSetterTemplate`
 - xml中某些特殊字符需要转义，如: `<` -> `&lt;`、`>` -> `&gt;`
