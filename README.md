@@ -58,3 +58,16 @@ partial class SampleService
     private T GetInstance<T>() => throw new NotImplementedException());
 }
 ```
+
+### 设置全局模板
+
+针对单个类型设置 `LazyPropertyTemplateAttribute` 在一些时候过于麻烦，可以使用 `LazyPropertyGlobalTemplate` 进行针对项目的全局设置，示例：
+
+```C#
+<PropertyGroup>
+  <LazyPropertyGlobalTemplate>$FieldName$ ??= default</LazyPropertyGlobalTemplate>
+</PropertyGroup>
+```
+
+- `LazyPropertyTemplateAttribute` 的优先级高于 `LazyPropertyGlobalTemplate`
+- xml中某些特殊字符需要转义，如: `<` -> `&lt;`、`>` -> `&gt;`

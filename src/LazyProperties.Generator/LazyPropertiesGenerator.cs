@@ -14,9 +14,31 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
     {
         var declarationsProvider = context.SyntaxProvider.CreateSyntaxProvider(FilterSyntaxNode, TransformSyntaxNode);
 
-        context.RegisterImplementationSourceOutput(declarationsProvider, (context, descriptor) =>
+        var compilationPropertiesProvider = context.AnalyzerConfigOptionsProvider.Select((configOptions, token) =>
         {
-            var (classDeclarationSyntax, lazyPropertyDeclarations, template) = descriptor;
+            configOptions.GlobalOptions.TryGetValue("build_property.LazyPropertyGlobalTemplate", out var lazyPropertyGlobalTemplateValue);
+
+            return new CompilationProperties()
+            {
+                GlobalTemplate = lazyPropertyGlobalTemplateValue
+            };
+        });
+
+        context.RegisterImplementationSourceOutput(declarationsProvider.Combine(compilationPropertiesProvider), (context, input) =>
+        {
+            var (descriptor, compilationProperties) = input;
+            var (classDeclarationSyntax, lazyPropertyDeclarations, classTemplate) = descriptor;
+
+            var template = compilationProperties.GlobalTemplate;
+
+            if (!string.IsNullOrWhiteSpace(classTemplate))
+            {
+                template = classTemplate;
+            }
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                template = LazyPropertiesConstants.DefaultLazyPropertyTemplate;
+            }
 
             var @namespace = "";
             IEnumerable<UsingDirectiveSyntax> usings = [];
@@ -96,7 +118,7 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
                 {
                     builder.AppendLine($"""
                                                [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-                                               set => {fieldName} = value;");
+                                               set => {fieldName} = value;
                                        """);
                 }
 
@@ -153,8 +175,7 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
         var templateAttribute = classDeclarationSyntax.AttributeLists.SelectMany(m => m.Attributes).FirstOrDefault(m => (m.Name as IdentifierNameSyntax)?.Identifier.Text == "LazyPropertyTemplate");
 
-        var template = (templateAttribute?.ArgumentList?.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText
-                       ?? LazyPropertiesConstants.DefaultLazyPropertyTemplate;
+        var template = (templateAttribute?.ArgumentList?.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText;
 
         return new(classDeclarationSyntax, lazyPropertyDeclarations, template);
     }

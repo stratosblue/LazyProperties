@@ -24,7 +24,7 @@ public class GeneralTest
                     partial class SampleService
                     {
                         [LazyProperty]
-                        public partial IService Service { get; }
+                        public partial IService Service { get; set; }
 
                         private T GetInstance<T>() => throw new System.NotImplementedException();
                     }
@@ -46,6 +46,8 @@ public class GeneralTest
                                 {
                                     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
                                     get => __Service ??= GetInstance<IService>();
+                                    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+                                    set => __Service = value;
                                 }
                             }
 
