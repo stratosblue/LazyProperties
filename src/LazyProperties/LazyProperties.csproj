@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
 
     <Description>Template property code generator based on `partial` property syntax. 基于 `partial` 属性语法的属性模板化代码生成器。</Description>
 
@@ -39,7 +39,7 @@
     <ProjectReference Include="..\LazyProperties.Generator\LazyProperties.Generator.csproj" PrivateAssets="All"/>
   </ItemGroup>
 
-  <Target Name="_IncludeSourceGenerator" BeforeTargets="_GetPackageFiles">
+  <Target Name="_IncludeLazyPropertiesSourceGenerator" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="..\LazyProperties.Generator\bin\$(Configuration)\**\*.dll" Pack="True" PackagePath="analyzers\dotnet\cs" />
     </ItemGroup>

@@ -190,10 +190,20 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
         var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
         var lazyPropertyDeclarations = GetLazyPropertyDeclarationSyntaxes(classDeclarationSyntax).ToList();
 
+        string? getterTemplate = null;
+        string? setterTemplate = null;
+
         var templateAttribute = classDeclarationSyntax.AttributeLists.SelectMany(m => m.Attributes).FirstOrDefault(m => (m.Name as IdentifierNameSyntax)?.Identifier.Text == "LazyPropertyTemplate");
 
-        var getterTemplate = (templateAttribute?.ArgumentList?.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText;
-        var setterTemplate = (templateAttribute?.ArgumentList?.Arguments[1].Expression as LiteralExpressionSyntax)?.Token.ValueText;
+        var templateArgumentCount = templateAttribute?.ArgumentList?.Arguments.Count ?? 0;
+        if (templateAttribute?.ArgumentList is { } argumentList)
+        {
+            getterTemplate = (argumentList.Arguments[0].Expression as LiteralExpressionSyntax)?.Token.ValueText;
+            if (argumentList.Arguments.Count > 1)
+            {
+                setterTemplate = (argumentList.Arguments[1].Expression as LiteralExpressionSyntax)?.Token.ValueText;
+            }
+        }
 
         return new(classDeclarationSyntax, lazyPropertyDeclarations, getterTemplate, setterTemplate);
     }
