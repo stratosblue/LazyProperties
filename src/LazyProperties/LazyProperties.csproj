@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
 
     <Description>Template property code generator based on `partial` property syntax. 基于 `partial` 属性语法的属性模板化代码生成器。</Description>
 

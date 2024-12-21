@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿#pragma warning disable IDE0130 // 命名空间与文件夹结构不匹配
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -52,6 +53,8 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
             }
 
             var className = classDeclarationSyntax.Identifier.ValueText;
+            //泛型参数
+            var classTypeParameters = classDeclarationSyntax.TypeParameterList?.ToString();
 
             var generateField = getterTemplate.Contains("$FieldName$") || setterTemplate.Contains("$FieldName$");
 
@@ -73,7 +76,7 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
                                namespace {{@namespace}};
 
-                               partial class {{className}}
+                               partial class {{className}}{{classTypeParameters}}
                                {
                                """);
 
@@ -120,7 +123,19 @@ public class LazyPropertiesGenerator : IIncrementalGenerator
 
             builder.AppendLine("}");
 
-            context.AddSource($"LazyProperties.{className}.g.cs", builder.ToString());
+            var hintName = $"LazyProperties.{@namespace}.{className}";
+
+            //泛型参数
+            if (!string.IsNullOrEmpty(classTypeParameters))
+            {
+                hintName += classTypeParameters.Replace("<", "_")
+                                               .Replace(">", "_")
+                                               .Replace(",", "_")
+                                               .Replace(" ", "_")
+                                               .Replace("@", "_");
+            }
+
+            context.AddSource(hintName: $"{hintName}.g.cs", builder.ToString());
         });
 
         context.RegisterPostInitializationOutput(context =>
